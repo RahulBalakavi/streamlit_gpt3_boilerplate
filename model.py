@@ -6,9 +6,18 @@ poem = """Write a poem with the following words:
 ---
 This is the poem: """
 
+nl_to_sql = """### Postgres SQL tables, with their properties:
+#
+# {table_name}({comma_sep_col_names})
+#
+### {question}
+SELECT """
+
+
 def set_openai_key(key):
     """Sets OpenAI key."""
     openai.api_key = key
+
 
 class GeneralModel:
     def __init__(self):
@@ -23,7 +32,7 @@ class GeneralModel:
         # arguments to send the API
         kwargs = {
             "engine": "text-davinci-002",
-            "temperature": 0.85,
+            "temperature": 0.6,
             "max_tokens": 600,
             "best_of": 1,
             "top_p": 1,
@@ -32,21 +41,20 @@ class GeneralModel:
             "stop": ["###"],
         }
 
-
         for kwarg in myKwargs:
             kwargs[kwarg] = myKwargs[kwarg]
-
 
         r = openai.Completion.create(prompt=prompt, **kwargs)["choices"][0][
             "text"
         ].strip()
         return r
 
-    def model_prediction(self, input, api_key):
+    def model_prediction(self, table_name, question, comma_sep_col_names, api_key):
         """
         wrapper for the API to save the prompt and the result
         """
         # Setting the OpenAI API key got from the OpenAI dashboard
         set_openai_key(api_key)
-        output = self.query(poem.format(input = input))
-        return output
+        output = self.query(
+            nl_to_sql.format(table_name=table_name, question=question, comma_sep_col_names=comma_sep_col_names))
+        return 'SELECT ' + output
