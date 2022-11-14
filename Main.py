@@ -1,3 +1,5 @@
+import os
+import pandas
 import streamlit as st
 from model import GeneralModel
 
@@ -38,9 +40,27 @@ def app():
             height=50,
         )
 
+        uploaded_file = st.file_uploader("Or Choose a CSV file. This will overwrite the above properties")
+        if uploaded_file is not None:
+            table_name = os.path.splitext(uploaded_file.name)[0]
+            file_type = os.path.splitext(uploaded_file.name)[1]
+            print(file_type)
+            if '.csv' != file_type:
+                st.write("Only CSV type files are allowed to be uploaded. Please refresh page and try again.")
+                return
+            print(table_name)
+            full_file_df = pandas.read_csv(uploaded_file, warn_bad_lines=True, error_bad_lines=False)
+            comma_sep_col_names = ','.join(list(full_file_df.columns.values))
+            print(comma_sep_col_names)
+            num_lines = len(full_file_df.index)
+            print(num_lines)
+            df = full_file_df.head()
+            print(df.values)
+            st.write(df)
+
         question = st.text_area(
             "Enter question to translate to SQL",
-            value="How many theft were happened in 2001",
+            placeholder="How many thefts happened in 2001",
             max_chars=150,
             height=50,
         )

@@ -33,7 +33,7 @@ class GeneralModel:
         kwargs = {
             "engine": "text-davinci-002",
             "temperature": 0.6,
-            "max_tokens": 600,
+            "max_tokens": 3000,
             "best_of": 1,
             "top_p": 1,
             "frequency_penalty": 0,
