@@ -5,17 +5,17 @@ from model import GeneralModel
 
 
 def app():
-
     # Creating an object of prediction service
     pred = GeneralModel()
 
     api_key = st.sidebar.text_input("APIkey", type="password")
+
     # Using the streamlit cache
-    @st.cache
-    def process_prompt(table_name, question, comma_sep_col_names):
+    def process_prompt(table_name, question, comma_sep_col_names, values):
 
         return pred.model_prediction(table_name=table_name.strip(), question=question.strip(),
-                                     comma_sep_col_names=comma_sep_col_names.strip(), api_key=api_key)
+                                     comma_sep_col_names=comma_sep_col_names.strip(),
+                                     values=values.strip(), api_key=api_key, )
 
     if api_key:
 
@@ -41,6 +41,7 @@ def app():
         )
 
         uploaded_file = st.file_uploader("Or Choose a CSV file. This will overwrite the above properties")
+        values_str = ""
         if uploaded_file is not None:
             table_name = os.path.splitext(uploaded_file.name)[0]
             file_type = os.path.splitext(uploaded_file.name)[1]
@@ -55,7 +56,10 @@ def app():
             num_lines = len(full_file_df.index)
             print(num_lines)
             df = full_file_df.head()
+            for value_arr in df.values:
+                values_str += '#values(' + ','.join(map(str, value_arr)) + ')\n'
             print(df.values)
+            print("values = %s", values_str)
             st.write(df)
 
         question = st.text_area(
@@ -67,7 +71,7 @@ def app():
 
         if st.button("Submit"):
             with st.spinner(text="In progress"):
-                report_text = process_prompt(table_name, question, comma_sep_col_names)
+                report_text = process_prompt(table_name, question, comma_sep_col_names, values=values_str)
                 st.markdown(report_text)
     else:
         st.error("🔑 Please enter API Key")

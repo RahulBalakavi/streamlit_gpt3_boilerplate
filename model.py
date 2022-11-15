@@ -6,12 +6,12 @@ poem = """Write a poem with the following words:
 ---
 This is the poem: """
 
-nl_to_sql = """### Postgres SQL tables, with their properties:
+nl_to_sql = """### Postgres SQL tables, with their properties and column values:
 #
 # {table_name}({comma_sep_col_names})
-#
+{values}
 ### {question}
-SELECT """
+SELECT"""
 
 
 def set_openai_key(key):
@@ -33,7 +33,7 @@ class GeneralModel:
         kwargs = {
             "engine": "text-davinci-002",
             "temperature": 0.6,
-            "max_tokens": 3000,
+            "max_tokens": 500,
             "best_of": 1,
             "top_p": 1,
             "frequency_penalty": 0,
@@ -49,12 +49,15 @@ class GeneralModel:
         ].strip()
         return r
 
-    def model_prediction(self, table_name, question, comma_sep_col_names, api_key):
+    def model_prediction(self, table_name, question, comma_sep_col_names, values, api_key):
         """
         wrapper for the API to save the prompt and the result
         """
         # Setting the OpenAI API key got from the OpenAI dashboard
         set_openai_key(api_key)
         output = self.query(
-            nl_to_sql.format(table_name=table_name, question=question, comma_sep_col_names=comma_sep_col_names))
+            nl_to_sql.format(table_name=table_name, question=question, comma_sep_col_names=comma_sep_col_names,
+                             values=values))
+        print(nl_to_sql.format(table_name=table_name, question=question, comma_sep_col_names=comma_sep_col_names,
+                               values=values))
         return 'SELECT ' + output
