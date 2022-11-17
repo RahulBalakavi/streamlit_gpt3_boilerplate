@@ -10,7 +10,7 @@ def app():
     pred = GeneralModel()
 
     # api_key = st.sidebar.text_input("APIkey", type="password")
-    api_key = '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'
+    api_key = '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'
 
     # Using the streamlit cache
     def process_prompt(table_name, question, comma_sep_col_names, values):
