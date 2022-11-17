@@ -87,16 +87,19 @@ def app():
                 report_text = process_prompt(table_name, question, comma_sep_col_names_filtered, values=values_str)
                 sql = report_text.split('#', 1)[0]
                 sql = sql.split(';', 1)[0] + ";"
-                sql = sql.replace("\n", "")
+                sql = sql.replace("\n", " ")
                 print("before quote replacement = " + sql)
                 for word, repl in col_name_to_quoted_col_name.items():
                     sql = sql.replace(word, repl)
                 print("after quote replacement = " + sql)
                 st.subheader(sql)
+                # st.checkbox("Is the query correct?", value=True)
+                # st.button("")
                 conn = sq.connect('{}.sqlite'.format(table_name))
                 df = pandas.read_sql(sql, conn)
                 conn.close()
                 st.write(df)
+
 
     else:
         st.error("🔑 Please enter API Key")
