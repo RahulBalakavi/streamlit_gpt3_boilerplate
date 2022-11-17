@@ -84,6 +84,7 @@ def app():
             with st.spinner(text="In progress"):
                 report_text = process_prompt(table_name, question, comma_sep_col_names_filtered, values=values_str)
                 sql = report_text.split(';', 1)[0] + ";"
+                sql = sql.replace("\n", "")
                 st.subheader(sql)
                 conn = sq.connect('{}.sqlite'.format(table_name))
                 df = pandas.read_sql(sql, conn)
