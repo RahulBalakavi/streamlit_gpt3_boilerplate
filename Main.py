@@ -65,11 +65,14 @@ def app():
 
         comma_sep_col_names_filtered = comma_sep_col_names
 
+        col_name_to_quoted_col_name = {}
         if comma_sep_col_names:
             col_names_filtered = st.multiselect(
                 'Select only needed column names',
                 col_names,
                 col_names)
+            for col_name in col_names_filtered:
+                col_name_to_quoted_col_name[col_name] = " \"" + col_name + "\" "
             comma_sep_col_names_filtered = ','.join(col_names_filtered)
 
         question = st.text_area(
@@ -82,8 +85,13 @@ def app():
         if st.button("Submit"):
             with st.spinner(text="In progress"):
                 report_text = process_prompt(table_name, question, comma_sep_col_names_filtered, values=values_str)
-                sql = report_text.split(';', 1)[0] + ";"
+                sql = report_text.split('#', 1)[0]
+                sql = sql.split(';', 1)[0] + ";"
                 sql = sql.replace("\n", "")
+                print("before quote replacement = " + sql)
+                for word, repl in col_name_to_quoted_col_name.items():
+                    sql = sql.replace(word, repl)
+                print("after quote replacement = " + sql)
                 st.subheader(sql)
                 conn = sq.connect('{}.sqlite'.format(table_name))
                 df = pandas.read_sql(sql, conn)
