@@ -47,6 +47,7 @@ def app():
                 return
             print(table_name)
             full_file_df = pandas.read_csv(uploaded_file, warn_bad_lines=True, error_bad_lines=False)
+            full_file_df.columns = full_file_df.columns.str.replace(' ', '_')
             comma_sep_col_names = ','.join(list(full_file_df.columns.values))
             col_names = full_file_df.columns.values;
             print(comma_sep_col_names)
@@ -71,9 +72,6 @@ def app():
                 'Select only needed column names',
                 col_names,
                 col_names)
-            for col_name in col_names_filtered:
-                col_name_to_quoted_col_name[col_name] = " \"" + col_name + "\" "
-            comma_sep_col_names_filtered = ','.join(col_names_filtered)
 
         question = st.text_area(
             "Enter question to translate to SQL",
@@ -88,10 +86,6 @@ def app():
                 sql = report_text.split('#', 1)[0]
                 sql = sql.split(';', 1)[0] + ";"
                 sql = sql.replace("\n", " ")
-                print("before quote replacement = " + sql)
-                for word, repl in col_name_to_quoted_col_name.items():
-                    sql = sql.replace(word, repl)
-                print("after quote replacement = " + sql)
                 st.subheader(sql)
                 # st.checkbox("Is the query correct?", value=True)
                 # st.button("")
@@ -99,7 +93,5 @@ def app():
                 df = pandas.read_sql(sql, conn)
                 conn.close()
                 st.write(df)
-
-
     else:
         st.error("🔑 Please enter API Key")
