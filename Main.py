@@ -54,7 +54,8 @@ def app():
             num_lines = len(full_file_df.index)
             print(num_lines)
             conn = sq.connect('{}.sqlite'.format(table_name))  # creates file
-            full_file_df.to_sql(table_name, conn, if_exists='replace', index=False)  # writes to file
+            sampled_df = full_file_df.sample(1000)
+            sampled_df.to_sql(table_name, conn, if_exists='replace', index=False)  # writes to file
             conn.close()
 
             df = full_file_df.head()
@@ -64,14 +65,14 @@ def app():
             print("values = %s", values_str)
             st.write(df)
 
-        comma_sep_col_names_filtered = comma_sep_col_names
+        comma_sep_col_names_filtered = ""
 
-        col_name_to_quoted_col_name = {}
         if comma_sep_col_names:
-            col_names_filtered = st.multiselect(
+            filtered_col_names = st.multiselect(
                 'Select only needed column names',
                 col_names,
                 col_names)
+            comma_sep_col_names_filtered = ','.join(list(filtered_col_names))
 
         question = st.text_area(
             "Enter question to translate to SQL",
