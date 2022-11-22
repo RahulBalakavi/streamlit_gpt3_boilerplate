@@ -1,6 +1,5 @@
 import os
 
-import boto3 as boto3
 import pandas
 
 import streamlit as st
