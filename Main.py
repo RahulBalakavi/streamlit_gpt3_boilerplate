@@ -1,5 +1,8 @@
 import os
+
+import boto3 as boto3
 import pandas
+
 import streamlit as st
 import sqlite3 as sq
 from model import GeneralModel
@@ -18,6 +21,23 @@ def app():
                                      comma_sep_col_names=comma_sep_col_names.strip(),
                                      values=values.strip(), api_key=api_key, )
 
+    def write_to_sheet(feedback=""):
+        # Creating Session With Boto3.
+        session = boto3.Session(
+            aws_access_key_id='AKIA5AVPH3V5ZGTQHNY2',
+            aws_secret_access_key='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'
+        )
+
+        # Creating S3 Resource From the Session.
+        s3 = session.resource('s3')
+
+        s3Obj = s3.Object('rbmv-nebula-k8s-s3', 'file_uploaded_by_boto3.txt')
+
+        body = s3Obj.get()['Body'].read()
+
+        updated_body = str(body) + feedback
+        s3Obj.put(Body=updated_body)
+
     if api_key:
 
         # Setting up the Title
@@ -33,7 +53,8 @@ def app():
         # )
         #
 
-        uploaded_file = st.file_uploader("Choose CSV file")
+        uploaded_file = st.file_uploader("Choose CSV file ( Column names with spaces will be replaced with "
+                                         "under-scores)")
         values_str = ""
         col_names = []
         comma_sep_col_names = ""
@@ -54,13 +75,17 @@ def app():
             num_lines = len(full_file_df.index)
             print(num_lines)
             conn = sq.connect('{}.sqlite'.format(table_name))  # creates file
-            sampled_df = full_file_df.sample(1000)
+            # Verify that sample size is > df size.
+            sampled_df = full_file_df;
+            if num_lines > 1000:
+                sampled_df = full_file_df.sample(1000)
             sampled_df.to_sql(table_name, conn, if_exists='replace', index=False)  # writes to file
             conn.close()
 
             df = full_file_df.head()
-            for value_arr in df.values:
-                values_str += '#values(' + ','.join(map(str, value_arr)) + ')\n'
+            # Un-comment in future if required.
+            # for value_arr in df.values:
+            #     values_str += '#values(' + ','.join(map(str, value_arr)) + ')\n'
             print(df.values)
             print("values = %s", values_str)
             st.write(df)
@@ -88,8 +113,11 @@ def app():
                 sql = sql.split(';', 1)[0] + ";"
                 sql = sql.replace("\n", " ")
                 st.subheader(sql)
-                # st.checkbox("Is the query correct?", value=True)
-                # st.button("")
+                col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
+                with col1:
+                    st.button(label="like", on_click=write_to_sheet, kwargs=dict(feedback=(question + ", true\n")))
+                with col2:
+                    st.button(label="dislike", on_click=write_to_sheet, kwargs=dict(feedback=(question + ", false\n")))
                 conn = sq.connect('{}.sqlite'.format(table_name))
                 df = pandas.read_sql(sql, conn)
                 conn.close()
